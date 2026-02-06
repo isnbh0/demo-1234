@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>다마고치 실험실</title>
+  <style>
+    :root {
+      --bg: #0f1226;
+      --panel: #161a3a;
+      --panel-2: #0b0e22;
+      --accent: #ffb703;
+      --accent-2: #00e5ff;
+      --good: #7CFC98;
+      --bad: #ff5d6c;
+      --text: #e9ecf7;
+      --muted: #9aa3c2;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Nanum Gothic", "Apple SD Gothic Neo", "Segoe UI", system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 20% 10%, #1b1f4a, var(--bg));
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1.2fr 1fr;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    }
+
+    .screen {
+      display: grid;
+      gap: 16px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .orb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .pet-area {
+      background: radial-gradient(220px 120px at 50% 20%, rgba(255,183,3,0.22), transparent);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 240px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pet {
+      width: 120px;
+      height: 120px;
+      border-radius: 40% 40% 50% 50%;
+      background: linear-gradient(160deg, #ffd166, #f8961e);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      transition: transform 0.4s ease;
+      cursor: pointer;
+    }
+
+    .pet.sleepy {
+      transform: translate(-50%, -50%) scale(0.92) rotate(-2deg);
+      filter: grayscale(0.2);
+    }
+
+    .face {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      width: 70px;
+      align-items: center;
+    }
+
+    .eye {
+      width: 16px;
+      height: 20px;
+      border-radius: 12px;
+      background: #2f2f2f;
+      position: relative;
+    }
+
+    .eye::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      left: 4px;
+    }
+
+    .mouth {
+      grid-column: 1 / -1;
+      height: 8px;
+      border-radius: 0 0 16px 16px;
+      background: #2f2f2f;
+      margin: 0 auto;
+      width: 24px;
+    }
+
+    .stats {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stat {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .bar {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--good), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+
+    .bar.bad > span {
+      background: linear-gradient(90deg, var(--bad), #ff8fab);
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    button {
+      padding: 12px 14px;
+      border: none;
+      border-radius: 12px;
+      background: #2b2f5b;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+
+    button:hover { background: #383d72; }
+    button:active { transform: translateY(1px) scale(0.98); }
+
+    .log {
+      min-height: 180px;
+      max-height: 240px;
+      overflow: auto;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .log div { margin-bottom: 6px; }
+
+    .settings {
+      display: grid;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.2);
+      color: var(--text);
+    }
+
+    .footer {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .easter {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      user-select: none;
+      cursor: pointer;
+    }
+
+    @media (max-width: 780px) {
+      .app { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card screen">
+      <div class="title">
+        <span class="orb" id="orb"></span>
+        다마고치 실험실
+        <span class="badge" id="phase">관찰 모드</span>
+      </div>
+      <div class="pet-area" id="petArea">
+        <div class="pet" id="pet">
+          <div class="face">
+            <span class="eye"></span>
+            <span class="eye"></span>
+            <span class="mouth" id="mouth"></span>
+          </div>
+        </div>
+        <div class="easter" id="easterHint">sleep?</div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div>배고픔 <span id="hungerText"></span></div>
+          <div class="bar" id="hungerBar"><span></span></div>
+        </div>
+        <div class="stat">
+          <div>행복 <span id="happyText"></span></div>
+          <div class="bar" id="happyBar"><span></span></div>
+        </div>
+        <div class="stat">
+          <div>에너지 <span id="energyText"></span></div>
+          <div class="bar" id="energyBar"><span></span></div>
+        </div>
+        <div class="stat">
+          <div>나이 <span id="ageText"></span></div>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="feedBtn">먹이주기</button>
+        <button id="playBtn">놀아주기</button>
+        <button id="sleepBtn">재우기</button>
+        <button id="cleanBtn">청소하기</button>
+      </div>
+      <div class="footer">팁: 펫을 클릭하거나, 아무것도 안 눌러도 무언가가 일어날 수 있어요.</div>
+    </section>
+
+    <section class="card">
+      <div class="settings">
+        <label>
+          펫 이름
+          <input type="text" id="nameInput" placeholder="이름을 지어줘" maxlength="12" />
+        </label>
+        <button id="resetBtn">처음부터 다시</button>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      name: "미지체",
+      hunger: 40,
+      happy: 60,
+      energy: 70,
+      age: 0,
+      asleep: false,
+      mood: "neutral",
+      ticks: 0,
+      eggs: {
+        comet: false,
+        reverse: false,
+        ascii: false,
+        orb: false
+      }
+    };
+
+    const pet = document.getElementById("pet");
+    const mouth = document.getElementById("mouth");
+    const log = document.getElementById("log");
+    const hungerBar = document.querySelector("#hungerBar span");
+    const happyBar = document.querySelector("#happyBar span");
+    const energyBar = document.querySelector("#energyBar span");
+    const hungerText = document.getElementById("hungerText");
+    const happyText = document.getElementById("happyText");
+    const energyText = document.getElementById("energyText");
+    const ageText = document.getElementById("ageText");
+    const phase = document.getElementById("phase");
+    const nameInput = document.getElementById("nameInput");
+    const easterHint = document.getElementById("easterHint");
+    const orb = document.getElementById("orb");
+
+    const logLine = (text) => {
+      const line = document.createElement("div");
+      const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+      line.textContent = `[${stamp}] ${text}`;
+      log.prepend(line);
+    };
+
+    const clamp = (value) => Math.max(0, Math.min(100, value));
+
+    const updateUI = () => {
+      hungerBar.style.width = `${state.hunger}%`;
+      happyBar.style.width = `${state.happy}%`;
+      energyBar.style.width = `${state.energy}%`;
+
+      hungerText.textContent = `${state.hunger}%`;
+      happyText.textContent = `${state.happy}%`;
+      energyText.textContent = `${state.energy}%`;
+      ageText.textContent = `${state.age}일`;
+
+      document.getElementById("hungerBar").classList.toggle("bad", state.hunger > 75);
+      document.getElementById("happyBar").classList.toggle("bad", state.happy < 30);
+      document.getElementById("energyBar").classList.toggle("bad", state.energy < 30);
+
+      pet.classList.toggle("sleepy", state.asleep);
+      mouth.style.borderRadius = state.mood === "happy" ? "0 0 18px 18px" : "18px";
+      mouth.style.width = state.mood === "sad" ? "18px" : "26px";
+
+      phase.textContent = state.asleep ? "수면 모드" : "관찰 모드";
+    };
+
+    const shiftStats = (delta) => {
+      state.hunger = clamp(state.hunger + (delta.hunger ?? 0));
+      state.happy = clamp(state.happy + (delta.happy ?? 0));
+      state.energy = clamp(state.energy + (delta.energy ?? 0));
+
+      if (state.happy >= 70) state.mood = "happy";
+      else if (state.happy <= 30) state.mood = "sad";
+      else state.mood = "neutral";
+
+      updateUI();
+    };
+
+    const tick = () => {
+      state.ticks += 1;
+      if (!state.asleep) {
+        shiftStats({ hunger: 2, happy: -1, energy: -2 });
+      } else {
+        shiftStats({ hunger: 1, happy: 1, energy: 3 });
+      }
+
+      if (state.ticks % 10 === 0) {
+        state.age += 1;
+      }
+
+      if (state.hunger > 85) logLine(`${state.name}가 배가 고파서 멍하니 바라본다.`);
+      if (state.energy < 20) logLine(`${state.name}의 전원이 약해졌다.`);
+      if (state.happy < 20) logLine(`${state.name}가 몰래 삐졌다.`);
+
+      if (state.age >= 3 && !state.eggs.comet) {
+        state.eggs.comet = true;
+        logLine("밤하늘에 혜성이 지나갔다. 우주가 살짝 흔들렸다.");
+        document.body.style.background = "radial-gradient(900px 500px at 80% 10%, #2c1e44, #0a0d1f)";
+      }
+
+      updateUI();
+    };
+
+    const feed = () => {
+      if (state.asleep) {
+        logLine("수면 중에는 먹을 수 없다. 아니면 먹을 수도?");
+        return;
+      }
+      shiftStats({ hunger: -20, happy: 5 });
+      logLine(`${state.name}가 냠냠 먹었다.`);
+    };
+
+    const play = () => {
+      if (state.asleep) {
+        logLine("졸려서 놀이를 거절했다.");
+        return;
+      }
+      shiftStats({ happy: 15, energy: -10, hunger: 5 });
+      logLine(`${state.name}가 신나게 뛰었다.`);
+    };
+
+    const sleep = () => {
+      state.asleep = !state.asleep;
+      logLine(state.asleep ? `${state.name}가 잠들었다.` : `${state.name}가 깨어났다.`);
+      updateUI();
+    };
+
+    const clean = () => {
+      shiftStats({ happy: 4, energy: -2 });
+      logLine("주변이 반짝반짝해졌다.");
+    };
+
+    const reset = () => {
+      state.hunger = 40;
+      state.happy = 60;
+      state.energy = 70;
+      state.age = 0;
+      state.asleep = false;
+      state.mood = "neutral";
+      state.ticks = 0;
+      state.eggs = { comet: false, reverse: false, ascii: false, orb: false };
+      document.body.style.background = "radial-gradient(1200px 600px at 20% 10%, #1b1f4a, var(--bg))";
+      logLine("실험실이 초기화되었다.");
+      updateUI();
+    };
+
+    document.getElementById("feedBtn").addEventListener("click", feed);
+    document.getElementById("playBtn").addEventListener("click", play);
+    document.getElementById("sleepBtn").addEventListener("click", sleep);
+    document.getElementById("cleanBtn").addEventListener("click", clean);
+    document.getElementById("resetBtn").addEventListener("click", reset);
+
+    nameInput.addEventListener("change", () => {
+      const value = nameInput.value.trim();
+      if (value) {
+        state.name = value;
+        logLine(`이름이 ${state.name}로 결정됐다.`);
+      }
+    });
+
+    pet.addEventListener("click", () => {
+      shiftStats({ happy: 6, energy: -1 });
+      logLine(`${state.name}가 쓰다듬을 받았다.`);
+      if (state.happy > 90 && !state.eggs.ascii) {
+        state.eggs.ascii = true;
+        logLine("(=^･ω･^=) ?? 화면 어딘가에 숨어 있는 고양이가 등장했다.");
+      }
+    });
+
+    // Easter egg 1: type "hello" then press enter in name input
+    nameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && nameInput.value.trim().toLowerCase() === "hello") {
+        logLine("시스템이 인사를 받았다. 친절도가 잠깐 올라갔다.");
+        shiftStats({ happy: 10, energy: 5 });
+      }
+    });
+
+    // Easter egg 2: triple click on the orb
+    orb.addEventListener("click", () => {
+      if (state.eggs.orb) return;
+      orb.dataset.clicks = (Number(orb.dataset.clicks) + 1).toString();
+      if (Number(orb.dataset.clicks) === 3) {
+        state.eggs.orb = true;
+        logLine("관측용 오브가 뒤집히며 비밀 모드가 활성화됐다.");
+        document.body.style.background = "radial-gradient(900px 500px at 50% 10%, #003049, #090b20)";
+        phase.textContent = "비밀 모드";
+      }
+      setTimeout(() => { orb.dataset.clicks = "0"; }, 600);
+    });
+
+    // Easter egg 3: hold 'r' for reverse time
+    let reverseTimer;
+    window.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() === "r" && !state.eggs.reverse) {
+        reverseTimer = setTimeout(() => {
+          state.eggs.reverse = true;
+          logLine("시간이 살짝 되감겼다. 나이가 줄었다.");
+          state.age = Math.max(0, state.age - 2);
+          state.hunger = clamp(state.hunger - 10);
+          state.energy = clamp(state.energy + 10);
+          updateUI();
+        }, 800);
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      if (event.key.toLowerCase() === "r") {
+        clearTimeout(reverseTimer);
+      }
+    });
+
+    // Easter egg 4: click the tiny hint while asleep
+    easterHint.addEventListener("click", () => {
+      if (state.asleep) {
+        logLine("속삭임이 들린다: '잠은 드래곤도 이긴다.'");
+        shiftStats({ energy: 12, happy: 4 });
+      } else {
+        logLine("힌트가 사라졌다. 졸리면 다시 나타날지도?");
+      }
+    });
+
+    // Random micro events
+    const microEvents = [
+      () => logLine(`${state.name}가 창문을 똑똑 두드렸다.`),
+      () => shiftStats({ happy: 3 }),
+      () => logLine("전파가 스친 듯 조용해졌다."),
+      () => shiftStats({ hunger: 3 })
+    ];
+
+    setInterval(() => {
+      tick();
+      if (Math.random() < 0.25) {
+        microEvents[Math.floor(Math.random() * microEvents.length)]();
+      }
+    }, 2000);
+
+    updateUI();
+    logLine(`${state.name}가 깨어났다.`);
+  </script>
+</body>
+</html>
